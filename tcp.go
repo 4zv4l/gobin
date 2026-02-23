@@ -63,7 +63,7 @@ func handleTCPClient(conn net.Conn) {
 	limitReader := io.LimitReader(conn, *maxFileSize+1)
 	written, err := io.Copy(file, limitReader)
 	file.Close()
-	if err != nil && !errors.Is(err, os.ErrDeadlineExceeded){
+	if err != nil && !errors.Is(err, os.ErrDeadlineExceeded) {
 		slog.Debug("TCP stream error", "error", err)
 		fmt.Fprintf(conn, "TCP stream error: %v\n", err)
 		os.Remove(path)

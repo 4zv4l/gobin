@@ -29,7 +29,7 @@ var (
 	fsMutex        sync.Mutex
 	idPool         []string
 	currentDirSize int64
-	webURL		string
+	webURL         string
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
