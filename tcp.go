@@ -57,6 +57,8 @@ func handleTCPClient(conn net.Conn) {
 		return
 	}
 
+	// deadline/timeout will stop the connection and return an error during io.Copy
+	// but we wont send this as an error to the client (pipe | nc doesnt EOF)
 	conn.SetReadDeadline(time.Now().Add(time.Duration(*timeout) * time.Second))
 	// +1 to detect client sending too much data
 	// we will return an error rather than pasting a truncated file
