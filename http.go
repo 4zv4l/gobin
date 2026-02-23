@@ -9,31 +9,35 @@ import (
 	"path/filepath"
 )
 
-func startWebServer(webURL string, isTLS bool) *http.Server {
+func routeDefault(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprintf(w, `<h3>Send some text and read it back</h3>
+		<code>
+		$ echo just testing! | nc %s %d </br>
+		%s/test </br>
+		$ curl %s/test </br>
+		just testing! </br>
+		</code>`, *urlStr, *tcpPort, webURL, webURL)
+}
+
+func routeID(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	filePath := filepath.Join(*directory, id)
+
+	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
+		http.NotFound(w, r)
+		return
+	}
+
+	slog.Info("Serving paste", "client", r.RemoteAddr, "id", id)
+	w.Header().Set("Content-Type", "text/plain")
+	http.ServeFile(w, r, filePath)
+}
+
+func startWebServer(isTLS bool) *http.Server {
 	router := http.NewServeMux()
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `<h3>Send some text and read it back</h3>
-<code>
-$ echo just testing! | nc %s %d </br>
-%s/test </br>
-$ curl %s/test </br>
-just testing! </br>
-</code>`, *urlStr, *tcpPort, webURL, webURL)
-	})
-	router.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) {
-		id := r.PathValue("id")
-		filePath := filepath.Join(*directory, id)
-
-		if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
-			http.NotFound(w, r)
-			return
-		}
-
-		slog.Info("Serving paste", "client", r.RemoteAddr, "id", id)
-		w.Header().Set("Content-Type", "text/plain")
-		http.ServeFile(w, r, filePath)
-	})
+	router.HandleFunc("/", routeDefault)
+	router.HandleFunc("/{id}", routeID)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", *address, *webPort),

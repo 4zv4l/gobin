@@ -42,12 +42,23 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+
 	if *urlStr == "" {
 		*urlStr = *address
 	}
 
 	if err := setupLogger(); err != nil {
 		slog.Error("Failed to setup logger", "error", err)
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(*directory, 0755); err != nil {
+		slog.Error("Failed to create directory", "error", err)
+		os.Exit(1)
+	}
+
+	if err := initStorageState(); err != nil {
+		slog.Error("Failed to init the storage state", "error", err)
 		os.Exit(1)
 	}
 
@@ -62,20 +73,10 @@ func main() {
 		webURL += fmt.Sprintf(":%d", *webPort)
 	}
 
-	if err := os.MkdirAll(*directory, 0755); err != nil {
-		slog.Error("Failed to create directory", "error", err)
-		os.Exit(1)
-	}
-
-	if err := initStorageState(); err != nil {
-		slog.Error("Failed to init the storage state", "error", err)
-		os.Exit(1)
-	}
-
 	slog.Info("Starting service...")
 	slog.Debug("Config", "tls", isTLS, "web_url", webURL, "gc", *gc, "pool_size", len(idPool))
 
-	srv := startWebServer(webURL, isTLS)
+	srv := startWebServer(isTLS)
 	listener := startTCPServer()
 
 	// handle ctrl-c
