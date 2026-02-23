@@ -76,13 +76,19 @@ func main() {
 	slog.Info("Starting service...")
 	slog.Debug("Config", "tls", isTLS, "web_url", webURL, "gc", *gc, "pool_size", len(idPool))
 
-	srv := startWebServer(isTLS)
+	httpErr := make(chan error)
+	srv := startWebServer(isTLS, httpErr)
 	listener := startTCPServer()
 
 	// handle ctrl-c
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
+	select {
+		case <-c:
+			break
+		case <-httpErr:
+			os.Exit(1)
+	}
 
 	fmt.Println("\rBye !")
 	srv.Shutdown(context.Background())

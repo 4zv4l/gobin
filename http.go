@@ -34,7 +34,7 @@ func routeID(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filePath)
 }
 
-func startWebServer(isTLS bool) *http.Server {
+func startWebServer(isTLS bool, cerr chan error) *http.Server {
 	router := http.NewServeMux()
 	router.HandleFunc("/", routeDefault)
 	router.HandleFunc("/{id}", routeID)
@@ -54,6 +54,7 @@ func startWebServer(isTLS bool) *http.Server {
 		}
 		if err != nil && err != http.ErrServerClosed {
 			slog.Error("Web server failed", "error", err)
+			cerr <- err
 		}
 	}()
 
