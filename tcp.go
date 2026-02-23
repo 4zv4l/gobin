@@ -42,8 +42,6 @@ func handleTCPClient(conn net.Conn) {
 	clientAddr := conn.RemoteAddr().String()
 	slog.Info("New client", "address", clientAddr)
 
-	conn.SetReadDeadline(time.Now().Add(time.Duration(*timeout) * time.Second))
-
 	id, err := acquireIDAndSpace()
 	if err != nil {
 		slog.Warn("Rejected paste", "reason", err)
@@ -59,17 +57,25 @@ func handleTCPClient(conn net.Conn) {
 		return
 	}
 
+	conn.SetReadDeadline(time.Now().Add(time.Duration(*timeout) * time.Second))
 	// +1 to detect client sending too much data
 	// we will return an error rather than pasting a truncated file
 	limitReader := io.LimitReader(conn, *maxFileSize+1)
 	written, err := io.Copy(file, limitReader)
 	file.Close()
+	if err != nil && !errors.Is(err, os.ErrDeadlineExceeded){
+		slog.Debug("TCP stream error", "error", err)
+		fmt.Fprintf(conn, "TCP stream error: %v\n", err)
+		os.Remove(path)
+		releaseID(id)
+		return
+	}
 
 	if written > *maxFileSize {
 		os.Remove(path)
 		releaseID(id)
 		slog.Warn("Client tried to send too much data", "address", clientAddr)
-		conn.Write([]byte("Too much data, try smaller :)\n"))
+		fmt.Fprintln(conn, "Too much data, try smaller :)")
 		return
 	}
 
@@ -77,10 +83,6 @@ func handleTCPClient(conn net.Conn) {
 		os.Remove(path)
 		releaseID(id)
 		return
-	}
-
-	if err != nil && !errors.Is(err, os.ErrDeadlineExceeded) {
-		slog.Debug("TCP stream error", "error", err)
 	}
 
 	commitPasteSize(written)
