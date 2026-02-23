@@ -16,7 +16,7 @@ var (
 	urlStr      = flag.String("url", "", "uses this url when generating links")
 	tcpPort     = flag.Int("tcp-port", 9999, "bind to this port (tcp server)")
 	webPort     = flag.Int("web-port", 4433, "bind to this port (web server)")
-	directory   = flag.String("directory", "", "directory to save/serve the pastes [mandatory]")
+	directory   = flag.String("directory", os.TempDir(), "directory to save/serve the pastes")
 	maxDirSize  = flag.Int64("max-dir-size", 104857600, "max directory size allowed in byte")
 	maxFileSize = flag.Int64("max-file-size", 10485760, "max file size allowed in byte")
 	timeout     = flag.Int("timeout", 1, "timeout in second to receive a paste")

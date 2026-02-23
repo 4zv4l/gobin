@@ -9,8 +9,36 @@ Because Gobin uses exactly zero external dependencies, building it is as simple 
 
 ## Usage
 
-You can use `-h` or `--help` to view the configuration flags.  
-Note that `-directory` is the only mandatory flag.  
+You can use `-h` or `--help` to view the configuration flags:
+```
+Usage of gobin:
+  -address string
+        bind to this address (default "127.0.0.1")
+  -cert-path string
+        certificate path for tls
+  -directory string
+        directory to save/serve the pastes (default "/tmp")
+  -gc
+        delete old paste if the pool is full
+  -loglevel string
+        log message up to that level (default "INFO")
+  -max-dir-size int
+        max directory size allowed in byte (default 104857600)
+  -max-file-size int
+        max file size allowed in byte (default 10485760)
+  -pkey-path string
+        private key path for tls
+  -randlen int
+        IDs length (default 4)
+  -tcp-port int
+        bind to this port (tcp server) (default 9999)
+  -timeout int
+        timeout in second to receive a paste (default 1)
+  -url string
+        uses this url when generating links
+  -web-port int
+        bind to this port (web server) (default 4433)
+```
 
 ### Log Levels: DEBUG, INFO, WARN, ERROR.
 
