@@ -89,5 +89,5 @@ func handleTCPClient(conn net.Conn) {
 
 	commitPasteSize(written)
 	slog.Info("Paste created", "client", clientAddr, "id", id)
-	fmt.Fprintf(conn, "%s/%s\n", webURL, id)
+	fmt.Fprintf(conn, "%s/%s\n", *baseURL, id)
 }
