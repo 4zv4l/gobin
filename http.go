@@ -17,7 +17,7 @@ func routeDefault(w http.ResponseWriter, r *http.Request) {
 		%s/test </br>
 		$ curl %s/test </br>
 		just testing! </br>
-		</code>`, *urlStr, *tcpPort, webURL, webURL)
+		</code>`, webURL, *tcpPort, *baseURL, *baseURL)
 }
 
 func routeID(w http.ResponseWriter, r *http.Request) {

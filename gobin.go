@@ -7,13 +7,14 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 )
 
 var (
 	address     = flag.String("address", "127.0.0.1", "bind to this address")
-	urlStr      = flag.String("url", "", "uses this url when generating links")
+	baseURL     = flag.String("base-url", "http://127.0.0.1", "base url to show in the template")
 	tcpPort     = flag.Int("tcp-port", 9999, "bind to this port (tcp server)")
 	webPort     = flag.Int("web-port", 4433, "bind to this port (web server)")
 	directory   = flag.String("directory", os.TempDir(), "directory to save/serve the pastes")
@@ -29,7 +30,7 @@ var (
 	fsMutex        sync.Mutex
 	idPool         []string
 	currentDirSize int64
-	webURL         string
+	webURL         string // used to show the ip/domain in the template
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -41,10 +42,6 @@ func main() {
 		fmt.Println("Error: --directory is mandatory.")
 		flag.Usage()
 		os.Exit(1)
-	}
-
-	if *urlStr == "" {
-		*urlStr = *address
 	}
 
 	if err := setupLogger(); err != nil {
@@ -62,19 +59,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	webURL = strings.SplitN(*baseURL, "/", 3)[2]
 	isTLS := *pkeyPath != "" && *certPath != ""
 	showPort := !((*webPort == 80 && !isTLS) || (*webPort == 443 && isTLS))
-	scheme := "http"
-	if isTLS {
-		scheme = "https"
-	}
-	webURL = fmt.Sprintf("%s://%s", scheme, *urlStr)
 	if showPort {
-		webURL += fmt.Sprintf(":%d", *webPort)
+		*baseURL += fmt.Sprintf(":%d", *webPort)
 	}
 
 	slog.Info("Starting service...")
-	slog.Debug("Config", "tls", isTLS, "web_url", webURL, "gc", *gc, "pool_size", len(idPool))
+	slog.Debug("Config", "tls", isTLS, "web_url", baseURL, "gc", *gc, "pool_size", len(idPool))
 
 	httpErr := make(chan error)
 	srv := startWebServer(isTLS, httpErr)
@@ -84,10 +77,10 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	select {
-		case <-c:
-			break
-		case <-httpErr:
-			os.Exit(1)
+	case <-c:
+		break
+	case <-httpErr:
+		os.Exit(1)
 	}
 
 	fmt.Println("\rBye !")
