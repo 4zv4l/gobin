@@ -30,8 +30,8 @@ var (
 	fsMutex        sync.Mutex
 	idPool         []string
 	currentDirSize int64
-	tmplTcpAddr        string // used to show the ip/domain in the template
-	tmplTcpPort        string // used to show the port in the template
+	tmplTcpAddr    string // used to show the ip/domain in the template
+	tmplTcpPort    string // used to show the port in the template
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -73,7 +73,10 @@ func main() {
 	}
 
 	slog.Info("Starting service...")
-	slog.Debug("Config", "tls", isTLS, "web_url", baseURL, "gc", *gc, "pool_size", len(idPool))
+	slog.Debug("Config", "tls", isTLS, "baseURL",
+		*baseURL, "tcpAddr", fmt.Sprintf("%s:%d", *address, *tcpPort),
+		"tmplTcpAddr", fmt.Sprintf("%s:%s", tmplTcpAddr, tmplTcpPort),
+		"gc", *gc, "pool_size", len(idPool))
 
 	httpErr := make(chan error)
 	srv := startWebServer(isTLS, httpErr)
