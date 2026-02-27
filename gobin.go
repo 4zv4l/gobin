@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
+	"strconv"
 	"syscall"
 )
 
@@ -57,6 +58,10 @@ func main() {
 	if err := initStorageState(); err != nil {
 		slog.Error("Failed to init the storage state", "error", err)
 		os.Exit(1)
+	}
+
+	if proxy_port := os.Getenv("RAILWAY_TCP_PROXY_PORT"); proxy_port != "" {
+		*tcpPort, _ = strconv.Atoi(proxy_port)
 	}
 
 	webURL = strings.SplitN(*baseURL, "/", 3)[2]
