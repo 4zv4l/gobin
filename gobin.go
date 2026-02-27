@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -31,7 +30,8 @@ var (
 	fsMutex        sync.Mutex
 	idPool         []string
 	currentDirSize int64
-	tcpAddr        string // used to show the ip/domain in the template
+	tmplTcpAddr        string // used to show the ip/domain in the template
+	tmplTcpPort        string // used to show the port in the template
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -61,9 +61,9 @@ func main() {
 	}
 
 	webURL := strings.SplitN(*baseURL, "/", 3)[2]
-	tcpAddr = "tcp." + webURL
+	tmplTcpAddr = "tcp." + webURL
 	if proxy_port := os.Getenv("RAILWAY_TCP_PROXY_PORT"); proxy_port != "" {
-		*tcpPort, _ = strconv.Atoi(proxy_port)
+		tmplTcpPort = proxy_port
 	}
 
 	isTLS := *pkeyPath != "" && *certPath != ""

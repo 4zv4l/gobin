@@ -13,11 +13,11 @@ func routeDefault(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	fmt.Fprintf(w, `<h3>Send some text and read it back</h3>
 		<code>
-		$ echo just testing! | nc %s %d </br>
+		$ echo just testing! | nc %s %s </br>
 		%s/test </br>
 		$ curl %s/test </br>
 		just testing! </br>
-		</code>`, tcpAddr, *tcpPort, *baseURL, *baseURL)
+		</code>`, tmplTcpAddr, tmplTcpPort, *baseURL, *baseURL)
 }
 
 func routeID(w http.ResponseWriter, r *http.Request) {
